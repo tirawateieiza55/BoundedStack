@@ -1,6 +1,0 @@
-31852,John Doe
-55555,Henry Onglee
-42132,Indy Narak
-76999,Game Eiei
-57003,Ok Ay
-87992,Yo Yu
