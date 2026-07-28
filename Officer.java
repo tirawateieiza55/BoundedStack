@@ -1,12 +1,8 @@
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.Arrays;
 
 
 
@@ -49,7 +45,11 @@ public class Officer {
         }
 
     }
-    // ID ต้องเป็นจำนวนเต็มไม่ติดลบ และมีจำนวนหลักเท่ากับ Length_ID พอดี
+    /**
+     * เช็คความถูกต้องของ ID
+     * @param n ต้องเป็นจำนวนเต็มไม่ติดลบ และมีจำนวนหลักเท่ากับ Length_ID พอดี
+     * @return true ถ้า n ไม่เป็น null ,  false เป็น null
+     */
     private static boolean ValidID(Integer n) {
         if (n == null) {
             return false;
@@ -58,7 +58,9 @@ public class Officer {
     }
     // ===== Creater =====
 
-
+    /**
+     * สร้าง List ID ว่าง
+     */
     public Officer() {
         this.ID = new ArrayList<>();
         checkRep();
@@ -67,7 +69,7 @@ public class Officer {
 
     //Creater 2
     /**
-     * 
+     * สร้างลิสต์ ID จาก ID 
      * @param initial ID พนักงาน ต้องไม่ซ้ำและไม่เกิน Max_Officer
      * @throws IllegalArgumentException ถ้า initial ผิดเงื่อนไข
      */
@@ -84,19 +86,30 @@ public class Officer {
         checkRep();
     }
 
-
+    /**
+     * คืนจำนวน ID ใน List
+     */
     public int size() {
         return ID.size();
     }
-
+    /**
+     * ตรวจว่ามี ID นี้อยู่หรือไม่
+     */
     public boolean contains(Integer n) {
         return this.ID.contains(n);
     }
-
+    /**
+     * คืน ID ทั้งหมดตามลำดับ
+     */
     public List<Integer> ID() {
         return new ArrayList<>(this.ID);
     }
-
+    /**
+     * เพิ่ม ID ต่อท้าย List
+     * @param n ID ต้องไม่เป็น null และไม่ซ้ำ และต้องมี 5 หลัก
+     * @return true ถ้าสำเร็จ, false ถ้ามี ID นี้อยู่แล้ว หรือเกิน 5 หลัก หรือ ซ้ำ
+     * @throws IllegalArgumentException ถ้า n เป็น null หรือ เกิน 5 หลัก 
+     */
     public boolean add(Integer n) {
         if (n == null) {
             throw new IllegalArgumentException("เลข ID ห้ามเป็น null");
@@ -111,7 +124,13 @@ public class Officer {
         checkRep();
         return true;
     }
-
+    /**
+     * ลบ ID ออกจาก List
+     *
+     * @param n ID ที่ต้องการลบ
+     * @throws IllegalArgumentException ถ้า n เป็น null
+     * @return true ถ้าลบสำเร็จ, false ถ้าไม่พบ ID นี้
+     */
     public boolean remove(Integer n) {
         if (n == null) {
             throw new IllegalArgumentException("เลข ID ห้ามเป็น null");
@@ -121,7 +140,10 @@ public class Officer {
         return removed;
     }
 
-    // Producer: คืนตัวใหม่ที่มีสมาชิกเรียงลำดับจากน้อยไปมาก
+    /**
+     * คืนตัวใหม่ที่มีสมาชิกเรียงลำดับจากน้อยไปมาก
+     * @return ID ที่สลับลำดับแล้ว
+     */
     public Officer sort() {
         List<Integer> sortedList = new ArrayList<>(this.ID);
         Collections.sort(sortedList);
