@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 /** 
  *  ถิรวัฒน์ กอบแก้ว 6821651213 Sec 800
- * 
+ *  วีรภาพ แซ่จิว 6821651761 Sec 800
  * 
  * 
 */
@@ -36,8 +36,6 @@ public class Officer {
     // คัดลอกทั้งขาเข้าและขาออก
 
     private  final List<Integer> ID;
-    
-
 
     private void checkRep() {
 
@@ -46,10 +44,17 @@ public class Officer {
         Set<Integer> seen = new HashSet<>();
         for (Integer s : ID) {
             assert s != null : "สมาชิกห้ามเป็น null" ;
-
+            assert ValidID(s) : "ID ต้องมี " + Length_ID + " หลัก: " + s;
             assert seen.add(s) : "เลข ID ห้ามซํ้า: " + s;
         }
 
+    }
+    // ID ต้องเป็นจำนวนเต็มไม่ติดลบ และมีจำนวนหลักเท่ากับ Length_ID พอดี
+    private static boolean ValidID(Integer n) {
+        if (n == null) {
+            return false;
+        }
+        return n >= 0 && String.valueOf(n).length() == Length_ID;
     }
     // ===== Creater =====
 
@@ -63,12 +68,18 @@ public class Officer {
     //Creater 2
     /**
      * 
-     * @param n
+     * @param initial ID พนักงาน ต้องไม่ซ้ำและไม่เกิน Max_Officer
+     * @throws IllegalArgumentException ถ้า initial ผิดเงื่อนไข
      */
     public Officer(List<Integer> initial) {
-
-
-
+        if(initial==null) throw new IllegalArgumentException();
+        if(initial.size()>Max_Officer) throw new IllegalArgumentException();
+        Set<Integer> seen = new HashSet<>();
+        for(Integer i : initial){
+            if(i == null) throw new IllegalArgumentException();
+            if(!ValidID(i)) throw new IllegalArgumentException();
+            if(!seen.add(i)) throw new IllegalArgumentException();
+            }
         this.ID = new ArrayList<>(initial);
         checkRep();
     }
@@ -92,6 +103,9 @@ public class Officer {
         }
         if (this.ID.contains(n)) {
             return false;
+        }
+        if (!ValidID(n)) {
+            throw new IllegalArgumentException("เลข ID ต้องมี " + Length_ID + " หลัก");
         }
         this.ID.add(n);
         checkRep();
