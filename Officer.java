@@ -66,8 +66,8 @@ public class Officer {
     //Creater 
     /**
      * รับความจุตอนสร้าง
-     * @param initial ID พนักงาน ต้องไม่ซ้ำและไม่เกิน Max_Officer
-     * @throws IllegalArgumentException ถ้า initial ผิดเงื่อนไข
+     * @param capacity ต้องไม่ <= 0 
+     * @throws IllegalArgumentException ถ้า capacity <= 0
      */
     public Officer(int capacity) {
         if (capacity <= 0) throw new IllegalArgumentException("Capacity ต้องมากกว่า 0");
