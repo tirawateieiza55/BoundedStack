@@ -33,8 +33,8 @@ public class TestOfficer {
         System.out.println("=== Officer Test ===\n");
 
         testCreators();
-        testAdd();
-        testRemove();
+        testPush();
+        testPop();
         testObservers();
         testProducer();
         testExposure();
@@ -55,183 +55,156 @@ public class TestOfficer {
     public static void testCreators() {
         System.out.println("=== testCreators ===");
 
-        Officer empty = new Officer();
-        check("new() -> empty", empty.size() == 0);
-        check("new() -> contains nothing", !empty.contains(1));
+        // ต้องสร้างโดยระบุ Capacity
+        Officer empty = new Officer(5);
+        check("new(5) -> empty", empty.size() == 0);
+        check("new(5) -> contains nothing", !empty.contains(1));
 
-        Officer p = new Officer(Arrays.asList(31852, 55555, 42132));
-        check("new(list) -> size 3", p.size() == 3);
-        check("new(list) -> contains 31852", p.contains(31852));
-        check("new(list) -> preserves order",
-        p.ID().equals(Arrays.asList(31852, 55555, 42132)));
+        // ทดสอบ Capacity ที่ผิดเงื่อนไข 
+        boolean threwZero = false;
+        try { 
+            new Officer(0); 
 
-        Officer fromEmpty = new Officer(new ArrayList<>());
-        check("new(empty list) -> empty", fromEmpty.size() == 0);
+        } catch (IllegalArgumentException e) {
+            threwZero = true; 
+        }
+        check("new(0) -> throws IllegalArgumentException", threwZero);
 
-        // input ที่ผิดเงื่อนไขต้องโยน exception ไม่ใช่ปล่อยผ่าน
+        boolean threwNegative = false;
+        try { 
+            new Officer(-5); 
+
+        } catch (IllegalArgumentException e) {
+            threwNegative = true; 
+        }
+        check("new(-5) -> throws IllegalArgumentException", threwNegative);
+    }
+
+    // --- Mutator: push ต้องรักษาสถานะและกันเลข ID ซ้ำ ---
+    private static void testPush() {
+        System.out.println("\n=== testPush ===");
+
+        Officer s = new Officer(3);
+        s.push(57003);
+        check("push(57003) -> size 1", s.size() == 1);
+        check("push(57003) -> found by contains", s.contains(57003));
+
+        s.push(76999);
+        s.push(87992);
+        check("จะต้องมี ID ทั้งหมด 3 ตัวที่ Push เข้ามา", s.ID().equals(Arrays.asList(57003, 76999, 87992)));
+
+        // ทดสอบดัน Stack เกิน Capacity
+        boolean threwFull = false;
+        try { s.push(99999); 
+
+        } catch (IllegalStateException e) {
+            threwFull = true; 
+        }
+        check("stack เต็ม -> throws IllegalStateException", threwFull);
+
+        // ทดสอบ ID ซ้ำ
         boolean threwDup = false;
-        try {
-            new Officer(Arrays.asList(3185244, 31852));
-        } catch (IllegalArgumentException e) {
-            threwDup = true;
-        }
-        check("new(duplicates) -> throws IllegalArgumentException", threwDup);
+        try { s.push(57003); 
 
+        } catch (IllegalArgumentException e) 
+        { 
+            threwDup = true; 
+
+        }
+        check("push ID ที่ซ้ำ -> throws IllegalArgumentException", threwDup);
+
+        // ทดสอบ null และความยาวผิด
         boolean threwNull = false;
-        try {
-            new Officer(Arrays.asList(31852, null));
+        try { s.push(null); 
+
         } catch (IllegalArgumentException e) {
-            threwNull = true;
+            threwNull = true; 
         }
-        check("new(list with null) -> throws IllegalArgumentException", threwNull);
+        check("push(null) -> throws IllegalArgumentException", threwNull);
 
-        boolean threwNullList = false;
-        try {
-            new Officer(null);
-        } catch (IllegalArgumentException e) {
-            threwNullList = true;
+        boolean threwShort = false;
+        try { s.push(1234); 
+
+        } catch (IllegalArgumentException e)
+        { 
+            threwShort = true; 
+
         }
-        check("new(null) -> throws IllegalArgumentException", threwNullList);
-
-        boolean threw1 = false;
-        try {
-            new Officer(Arrays.asList(3, 5));
-        } catch (IllegalArgumentException e) {
-            threw1 = true;
-        }
-        check("new(ส่งเลขตัวเดียวไม่ถึง 5 หลัก) -> throws IllegalArgumentException", threw1);
-
-        boolean threw2 = false;
-        try {
-            new Officer(Arrays.asList(5321323));
-        } catch (IllegalArgumentException e) {
-            threw2 = true;
-        }
-        check("new(ส่งเลขที่เกิน Length_ID) -> throws IllegalArgumentException", threw2);
-
-    }
-    // --- Mutator: add ต้องรักษาสถานะและกันเลข ID ซ้ำ ---
-    private static void testAdd() {
-        System.out.println("\n-- Add --");
-
-        Officer s = new Officer();
-        check("add(57003) -> returns true", s.add(57003));
-        check("add(57003) -> size 1", s.size() == 1);
-        check("add(57003) -> found by contains", s.contains(57003));
-
-        s.add(76999);
-        s.add(87992);
-        check("add preserves insertion order",
-                s.ID().equals(Arrays.asList(57003, 76999, 87992)));
-
-        // ID ซ้ำไม่ใช่ error — คืน false เฉย ๆ
-        check("add duplicate -> returns false", !s.add(57003));
-        check("failed add leaves size unchanged", s.size() == 3);
-
-        // input ที่ผิดเงื่อนไขต้องโยน exception
-        boolean threwNull = false;
-        try {
-            s.add(null);
-        } catch (IllegalArgumentException e) {
-            threwNull = true;
-        }
-        check("add(null) -> throws IllegalArgumentException", threwNull);
-
-        check("failed adds leave Officer unchanged", s.size() == 3);
-
-        boolean threw1 = false;
-        try {
-            s.add(3);
-        } catch (IllegalArgumentException e) {
-            threw1 = true;
-        }
-        check("add(ส่งเลขตัวเดียว) -> throws IllegalArgumentException", threw1);
-
-        boolean threw2 = false;
-        try {
-            s.add(5321323);
-        } catch (IllegalArgumentException e) {
-            threw2 = true;
-        }
-        check("add(ส่งเลขที่เกิน Length) -> throws IllegalArgumentException", threw2);
-        
-
-        Officer full = new Officer();
-        for (int i = 0; i < Officer.Max_Officer; i++) {
-            full.add(10000 + i);
-        }
-        check("can fill up to Max_Officer", full.size() == Officer.Max_Officer);
-
+        check("push(4 หลัก) -> throws IllegalArgumentException", threwShort);
     }
 
 
-    // --- Mutator: remove ทั้งกรณีพบและไม่พบ ---
-    public static void testRemove() {
-        System.out.println("=== testRemove ===");
+    // --- Mutator: pop  ---
+    public static void testPop() {
+        System.out.println("\n=== testPop ===");
 
-        Officer s = new Officer(Arrays.asList(54204, 32444,78543));
-        check("remove(78543) -> returns true", s.remove(78543));
-        check("remove -> size decreases", s.size() == 2);
-        check("remove -> ID is gone", !s.contains(78543));
-        check("remove keeps the others in order",
-                s.ID().equals(Arrays.asList(54204, 32444)));
+        Officer s = new Officer(5);
+        s.push(54204);
+        s.push(32444);
+        s.push(78543);
 
-         // ลบIDที่ไม่มีไม่ใช่ error — คืน false เฉย ๆ
-        check("remove missing ID -> returns false", !s.remove(12345));
-        check("failed remove leaves size unchanged", s.size() == 2);
+        // ทดสอบว่า Pop เอาตัวสุดท้าย (บนสุด) ออกมา
+        Integer popped = s.pop();
+        check("pop() -> returns 78543", popped.equals(78543));
+        check("pop() -> size ต้องเป็น 2", s.size() == 2);
+        check("pop() -> ต้องไม่มี ID ที่ลบไปแล้ว", !s.contains(78543));
 
-        s.remove(54204);
-        s.remove(32444);
+        s.pop(); 
+        s.pop(); 
 
-        check("remove all -> empty", s.size() == 0);
-        check("remove on empty ID -> returns false", !s.remove(54204));
+        // ทดสอบ Pop เมื่อ Stack ว่าง
+        boolean threwEmpty = false;
+        try { s.pop(); 
+
+        } catch (IllegalStateException e) 
+        { 
+            threwEmpty = true; 
+
+        }
+        check("pop() on empty stack -> throws IllegalStateException", threwEmpty);
     }
 
     // --- Observer ต้องไม่มี side effect ---
     public static void testObservers() {
-        System.out.println("=== testObservers ===");
+        System.out.println("\n=== testObservers ===");
 
-        Officer s = new Officer(Arrays.asList(54204, 32444));
+        Officer s = new Officer(5);
+        s.push(54204);
+        s.push(32444);
+
         check("size reports 2", s.size() == 2);
-        check("contains finds an existing ID", s.contains(54204));
-        check("contains rejects a missing ID", !s.contains(12345));
-        check("ID returns the full list in order",
-                s.ID().equals(Arrays.asList(54204, 32444)));
+        check("ต้องเจอ ID ที่ Push เข้ามา", s.contains(54204));
+        check("ต้องไม่เจอ ID ที่ไม่ได้ Push เข้ามา", !s.contains(12345));
+        check("ต้องเจอ ID ทั้งหมดที่ Push เข้ามา", s.ID().equals(Arrays.asList(54204, 32444)));
 
         int before = s.size();
         s.size();
         s.contains(54204);
         s.ID();
-        check("observers have no side effects", s.size() == before);
+        check("การ observe ต้องไม่มี side effects", s.size() == before);
     }
 
      // --- Producer ต้องคืนตัวใหม่ ไม่แก้ตัวเดิม ---
     public static void testProducer() {
-        System.out.println("=== testProducer ===");
+        System.out.println("\n=== testProducer ===");
 
-        Officer original = new Officer(Arrays.asList(54204, 32444, 78543));
+        Officer original = new Officer(5);
+        original.push(54204);
+        original.push(32444);
+        original.push(78543);
+
         Officer sorted = original.sort();
 
         check("sorted has the same size", sorted.size() == original.size());
 
-        List<Integer> a = new ArrayList<Integer>(original.ID());
-        List<Integer> b = new ArrayList<Integer>(sorted.ID());
-        Collections.sort(a);
-        Collections.sort(b);
-        check("sorted contains exactly the same IDs", a.equals(b));
-
-        check("sorted does not mutate the original",
+        List<Integer> expected = Arrays.asList(32444, 54204, 78543);
+        check("ตัวที่สร้างมาใหม่ต้องมี ID ที่เรียงลำดับถูกต้อง", sorted.ID().equals(expected));
+        
+        check("sorted ต้องไม่แก้ original", 
                 original.ID().equals(Arrays.asList(54204, 32444, 78543)));
 
-        // mutate ตัวใหม่ต้องไม่กระทบตัวเดิม
-        sorted.add(12345);
-        check("mutating the result does not affect the original",
-                original.size() == 3);
-
-        // boundary: sorted ID ว่างต้องไม่พัง
-        Officer emptySorted = new Officer().sort();
-        check("sorting an empty officer is safe", emptySorted.size() == 0);
-
+        sorted.push(99999);
+        check("ตัวที่สร้างมาใหม่ต้องไม่กระทบ original", original.size() == 3);
     }
     
 
@@ -239,40 +212,21 @@ public class TestOfficer {
     
     // --- ทดสอบว่าไม่เกิด representation exposure ---
     public static void testExposure() {
-        System.out.println("=== testExposure ===");
+        System.out.println("\n=== testExposure ===");
 
+        Officer s = new Officer(5);
+        s.push(54204);
 
-         // ขาออก: แก้ list ที่ได้จาก ID() ต้องไม่กระทบ rep
-        Officer s = new Officer();
-        s.add(54204);
-
+        // ขาออก: แก้ list ที่ได้จาก ID() ต้องไม่กระทบ rep
         List<Integer> got = s.ID();
         got.clear();
-        check("clearing result of ID() does not affect officer",
-                s.size() == 1);
+        check("การ clear ต้องไม่กระทบ original", s.size() == 1);
 
         got = s.ID();
         got.add(12345);
-        check("adding to result of ID() does not affect officer",
-                s.size() == 1 && !s.contains(12345));
+        check("การ add ต้องไม่กระทบ original", s.size() == 1 && !s.contains(12345));
 
-         // สองครั้งต้องเป็นคนละ object
-        check("ID() returns a fresh list each call",
-                s.ID() != s.ID());
-
-        // ขาเข้า: แก้ list ที่ส่งให้ constructor ต้องไม่กระทบ rep
-        List<Integer> input = new ArrayList<Integer>(Arrays.asList(54204, 32444));
-        Officer p = new Officer(input);
-
-
-        input.clear();
-        check("clearing constructor argument does not affect officer",
-                p.size() == 2);
-
-        input.add(12345);
-        check("adding to constructor argument does not affect officer",
-                !p.contains(12345));
-
+        check("ID() ต้องคืน list ใหม่ทุกครั้ง", s.ID() != s.ID());
     }
 
 

@@ -1,8 +1,10 @@
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Stack;
 import java.util.Collections;
 import java.util.List;
+
 
 /** 
  *  ถิรวัฒน์ กอบแก้ว 6821651213 Sec 800
@@ -12,7 +14,7 @@ import java.util.List;
 public class Officer {
 
     private static final int Length_ID = 5;
-    public static final int Max_Officer = 10;
+    private final int maxCapacity;
 
     // AF
     // AF(ID) = เลขประจำตัวของพนักงาน ของแต่ละคน
@@ -27,11 +29,11 @@ public class Officer {
     // ID เป็น private  final
     // คัดลอกทั้งขาเข้าและขาออก
 
-    private  final List<Integer> ID;
+    private final List<Integer> ID;
 
     private void checkRep() {
 
-            assert ID != null  : "list_ID ห้ามเป็น null" ;
+        assert ID != null  : "list_ID ห้ามเป็น null" ;
         Set<Integer> seen = new HashSet<>();
         for (Integer s : ID) {
             assert s != null   : "สมาชิกห้ามเป็น null" ;
@@ -52,31 +54,25 @@ public class Officer {
 
     // ===== Creater =====
 
-    /**
-     * สร้าง List ID ว่าง
-     */
-    public Officer() {
-        this.ID = new ArrayList<>();
-        checkRep();
-    }
+    // /**
+    //  * สร้าง List ID ว่าง
+    //  */
+    // public Officer() {
+    //     this.ID = new Stack<>();
+    //     checkRep();
+    // }
 
 
-    //Creater 2
+    //Creater 
     /**
-     * สร้างลิสต์ ID จาก ID 
+     * รับความจุตอนสร้าง
      * @param initial ID พนักงาน ต้องไม่ซ้ำและไม่เกิน Max_Officer
      * @throws IllegalArgumentException ถ้า initial ผิดเงื่อนไข
      */
-    public Officer(List<Integer> initial) {
-        if(initial==null)              throw new IllegalArgumentException();
-        if(initial.size()>Max_Officer) throw new IllegalArgumentException();
-        Set<Integer> seen = new HashSet<>();
-        for(Integer i : initial){
-            if(i == null)              throw new IllegalArgumentException();
-            if(!ValidID(i))            throw new IllegalArgumentException();
-            if(!seen.add(i))           throw new IllegalArgumentException();
-            }
-        this.ID = new ArrayList<>(initial);
+    public Officer(int capacity) {
+        if (capacity <= 0) throw new IllegalArgumentException("Capacity ต้องมากกว่า 0");
+        this.maxCapacity = capacity;
+        this.ID = new ArrayList<>();
         checkRep();
     }
 
@@ -99,47 +95,66 @@ public class Officer {
      * คืน ID ทั้งหมดตามลำดับ
      */
     public List<Integer> ID() {
-        return new ArrayList<>(this.ID);
+        Stack<Integer> copy = new Stack<>();
+        copy.addAll(this.ID);
+        return copy;
     }
 
     /**
-     * เพิ่ม ID ต่อท้าย List
+     * เพิ่ม ID ต่อท้าย
      * @param n ID ต้องไม่เป็น null และไม่ซ้ำ และต้องมี 5 หลัก
      * @return true ถ้าสำเร็จ, false ถ้ามี ID นี้อยู่แล้ว หรือเกิน 5 หลัก หรือ ซ้ำ
      * @throws IllegalArgumentException ถ้า n เป็น null หรือ เกิน 5 หลัก 
      */
-    public boolean add(Integer n) {
-        if (n == null)           throw new IllegalArgumentException("เลข ID ห้ามเป็น null");
-        if (this.ID.contains(n)) return false;
-        if (!ValidID(n))         throw new IllegalArgumentException("เลข ID ต้องมี " + Length_ID + " หลัก");
+    public void push(Integer n) {
+        if (n == null) throw new IllegalArgumentException("ห้ามใส่ null");
+        if (n < 0 || String.valueOf(n).length() != Length_ID) {
+            throw new IllegalArgumentException("ID ต้องมี " + Length_ID + " หลัก: " + n);
+        }
+
+        for (Integer i : this.ID) {
+            if (i.equals(n)) {
+                throw new IllegalArgumentException("ID ซ้ำ: " + n);
+            }
+        }
+        if (this.ID.size() >= maxCapacity) {
+            throw new IllegalStateException("Stack เต็มแล้ว");
+        }
         this.ID.add(n);
         checkRep();
-        return true;
     }
 
     /**
-     * ลบ ID ออกจาก List
-     * @param n ID ที่ต้องการลบ
-     * @throws IllegalArgumentException ถ้า n เป็น null
-     * @return true ถ้าลบสำเร็จ, false ถ้าไม่พบ ID นี้
+     * นำ ID ตัวสุดท้าย ออกจาก Stack
+     * @throws IllegalStateException ถ้า Stack ว่าง
+     * @return ID ที่ถูกนำออกจาก Stack
      */
-    public boolean remove(Integer n) {
-        if (n == null)         throw new IllegalArgumentException("เลข ID ห้ามเป็น null");
-        boolean removed = this.ID.remove(n);
+    public Integer pop() {
+        if (this.ID.isEmpty()) {
+            throw new IllegalStateException("Stack ว่าง");
+        }
+        
+        Integer topItem = this.ID.remove(this.ID.size() - 1); //ตัวสุดท้าย
         checkRep();
-        return removed;
+        return topItem;
     }
 
     /**
-     * คืนตัวใหม่ที่มีสมาชิกเรียงลำดับจากน้อยไปมาก
-     * @return ID ที่สลับลำดับแล้ว
+     * คืนสแตกตัวใหม่ที่มีสมาชิกเรียงลำดับจากน้อยไปมาก (โดยไม่แก้ไขสแตกเดิม)
+     * @return Officer ตัวใหม่ที่ข้อมูลเรียงลำดับแล้ว
      */
     public Officer sort() {
         List<Integer> sortedList = new ArrayList<>(this.ID);
         Collections.sort(sortedList);
-        return new Officer(sortedList);
-    }
 
+        Officer sortedStack = new Officer(this.maxCapacity);
+        for (Integer n : sortedList) {//Push ลงในสแตกตัวใหม่
+            sortedStack.push(n);
+        }
+        return sortedStack;
+    }
+    
+ 
     @Override
     public String toString() {
         return ID.toString();
